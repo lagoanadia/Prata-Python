@@ -1,72 +1,71 @@
-# Python Language App
+# 🇸🇪 Prata — Python Language App
 
-A desktop app for learning Swedish through AI conversation and vocabulary tracking — built with Python, Ollama, and CustomTkinter.
+A desktop app for learning Swedish through AI conversation and vocabulary tracking — built with Python, a local **Ollama** model and **CustomTkinter**. Part of the *Prata* family of language-learning projects.
 
-**[→ View the code](app.py)**
-
----
-
-## What it does
-
-- **AI Chat** — conversational Swedish tutor powered by a local Ollama model (llama3.2). Responses are always in Swedish with English translation in parentheses, and mistakes are corrected in real time.
-- **Vocabulary Tracker** — add words you encounter in conversation, save their translation, and persist them across sessions via CSV.
-- **Quiz Mode** — flashcard-style quiz that pulls unlearnt words from your vocabulary list and tracks which ones you've mastered.
-
----
-
-## Stack
-
-- Python 3
-- [Ollama](https://ollama.com) — local LLM inference (no API key needed)
-- llama3.2 — language model
-- CustomTkinter — desktop UI
-- CSV — lightweight local data storage
-
----
-
-## Project structure
+## 📁 Project Structure
 
 ```
-Python-Language-App/
-├── data/
-│   ├── vocabulary.csv     # saved words and translations
-│   └── quiz.csv           # word status (unlearnt / learnt)
-├── app.py                 # main UI — chat, vocab list, quiz mode
-├── ai.py                  # Ollama chat with conversation history
-├── vocab.py               # vocabulary CSV CRUD
-├── quiz.py                # quiz CSV CRUD and word status tracking
-└── README.md
+├── app.py               → Main UI: chat, vocabulary list and quiz mode
+├── ai.py                → Ollama chat with conversation history and the tutor's system prompt
+├── vocab.py             → Vocabulary CSV CRUD (save, list, translate, delete)
+├── quiz.py              → Quiz CSV CRUD and word status tracking
+└── data/
+    ├── vocabulary.csv   → Saved words and translations
+    └── quiz.csv         → Word status (unlearnt / learnt)
 ```
 
----
+## 🚀 How It Works
 
-## How to run
+The window is split in two: the **AI chat** on the left and the **vocabulary list** on the right. A third screen holds the **quiz**.
 
-**1. Install dependencies:**
+- **AI Chat** — a beginner (A1) Swedish tutor running on a local `llama3.2` model. Every Swedish sentence comes with its English translation in parentheses, and mistakes are gently corrected.
+- **Vocabulary Tracker** — add words you meet in the conversation with their translation; they're saved to CSV and loaded on startup.
+- **Quiz Mode** — flashcards built from your *unlearnt* words; marking one as learnt updates its status in real time.
+
+### The model has no memory — so we send it all
+
+Ollama is stateless, so `ai.py` keeps a list of `{role, content}` dictionaries and passes the full history on every call:
+
+```python
+chat_history.append({"role": "user", "content": user_message})
+```
+
+### A strict system prompt
+
+The tutor's behaviour lives in `SYSTEM_PROMPT`: A1 level only, max 3 sentences, everyday topics, and *always* an English translation after every Swedish sentence.
+
+### CSV as a tiny database
+
+`vocab.py` and `quiz.py` create their files if missing, append rows with `csv.writer`, and update a word's status by reading all rows with `csv.DictReader`, modifying them and rewriting the file. Deleting a word removes it from both files.
+
+### Responsive UI
+
+The AI call runs in a separate `threading.Thread` so the window doesn't freeze while the model answers.
+
+## 🧠 Key Concepts
+
+- **Local LLMs with Ollama** — chat API, system prompt, conversation history
+- **Prompt engineering** — constraining level, format and length
+- **CustomTkinter** — frames, textboxes, scrollable frames
+- **Threading** — keeping a GUI responsive during slow calls
+- **CSV persistence** — create / read / update / delete with the `csv` module
+- **Modular code** — UI, AI and data access in separate files
+
+## 🛠️ How To Run
+
 ```bash
 pip install customtkinter ollama
 ```
 
-**2. Install and run Ollama:**
+Install [Ollama](https://ollama.com), then download the model:
 
-Download from [ollama.com](https://ollama.com), then:
 ```bash
 ollama pull llama3.2
 ```
 
-**3. Run the app:**
 ```bash
 python app.py
 ```
-
----
-
-## Features
-
-- AI conversation stays in context — full message history passed on every call
-- Vocabulary persists across sessions — loaded automatically on startup
-- Quiz mode tracks learnt vs unlearnt words and updates status in real time
-- Delete words from both vocab list and quiz simultaneously
 
 ---
 
